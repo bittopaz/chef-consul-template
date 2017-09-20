@@ -10,44 +10,36 @@ end
 
 include_recipe 'ark::default'
 
-arch = case node['kernel']['machine']
-       when 'x86_64'
-         'amd64'
-       when 'i386'
-         'i386'
-       else
-         raise 'Unsupported CPU architecture'
-       end
-
-version = node['devopsdance-consul-template']['version']
+version = node['consul-template']['version']
 
 ark 'consul-template' do
-  url "https://releases.hashicorp.com/consul-template/#{version}/consul-template_#{version}_#{node['os']}_#{arch}.tgz"
-  version node['devopsdance-consul-template']['version']
+  url "#{node['consul-template']['source_url']}/#{version}/consul-template_#{version}_linux_amd64.tgz"
+  version node['consul-template']['version']
   strip_components 0
+  checksum node['consul-template']['checksum']
   notifies :restart, 'service[consul-template]', :delayed
   action :install
 end
 
-directory node['devopsdance-consul-template']['config_dir'] do
+directory node['consul-template']['config_dir'] do
   owner 'root'
   group 'root'
   mode '0755'
   action :create
 end
 
-directory node['devopsdance-consul-template']['config_template_dir'] do
+directory node['consul-template']['config_template_dir'] do
   owner 'root'
   group 'root'
   mode '0755'
   action :create
 end
 
-file File.join(node['devopsdance-consul-template']['config_dir'], 'default.json') do
+file File.join(node['consul-template']['config_dir'], 'default.json') do
   owner 'root'
-  group node['devopsdance-consul-template']['service_group']
+  group 'root'
   mode '0640'
-  content JSON.pretty_generate(node['devopsdance-consul-template']['config'], quirks_mode: true)
+  content JSON.pretty_generate(node['consul-template']['config'], quirks_mode: true)
   notifies :restart, 'service[consul-template]', :delayed
   action :create
 end
@@ -62,16 +54,15 @@ systemd_unit 'consul-template.service' do
       'WantedBy' => 'multi-user.target',
     },
     'Service' => {
-      'ExecStart' => "#{node['ark']['prefix_home']}/consul-template/consul-template -config #{node['devopsdance-consul-template']['config_dir']}",
+      'ExecStart' => "#{node['ark']['prefix_home']}/consul-template/consul-template -config #{node['consul-template']['config_dir']}",
       'ExecReload' => '/bin/kill -HUP $MAINPID',
     })
   notifies :restart, 'service[consul-template]', :delayed
-  action [
-    :create,
-    :enable,
-  ]
+  triggers_reload true
+  action [:create, :enable]
 end
 
 service 'consul-template' do
+  supports status: true, restart: true, reload: true
   action :start
 end

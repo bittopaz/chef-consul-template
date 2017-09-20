@@ -1,64 +1,16 @@
 ---
-
 driver:
-  name: dokken
-  chef_image: devopsdance/chef
-  privileged: true
-
-transport:
-  name: dokken
+  name: vagrant
 
 provisioner:
-  name: dokken
-
-verifier:
-  name: inspec
+  name: chef_zero
 
 platforms:
   - name: ubuntu-16.04
-    driver:
-      image: ubuntu:xenial
-      pid_one_command: /sbin/init
-      intermediate_instructions:
-        - RUN apt-get update -y
-        - RUN apt-get install net-tools -y
-        - RUN rm -v /usr/sbin/policy-rc.d
-
-  - name: ubuntu-14.04
-    driver:
-      image: ubuntu:trusty
-      pid_one_command: /sbin/init
-      intermediate_instructions:
-        - RUN apt-get update -y
-        - RUN apt-get install net-tools systemd -y
-        - RUN rm -v /usr/sbin/policy-rc.d
-
-  - name: debian-9
-    driver:
-      image: debian:stretch
-      pid_one_command: /bin/systemd
-      intermediate_instructions:
-        - RUN apt-get update -y
-        - RUN apt-get install net-tools systemd -y
-        - RUN rm -v /usr/sbin/policy-rc.d
-
-  - name: debian-8
-    driver:
-      image: debian:jessie
-      pid_one_command: /bin/systemd
-      intermediate_instructions:
-        - RUN apt-get update -y
-        - RUN apt-get install net-tools -y
-        - RUN rm -v /usr/sbin/policy-rc.d
 
 suites:
-  - name: default-12
-    run_list:
-      - recipe[devopsdance-consul-template::_test]
-    driver:
-      chef_version: 12
   - name: default-13
     run_list:
-      - recipe[devopsdance-consul-template::_test]
+      - recipe[consul-template::_test]
     driver:
       chef_version: 13

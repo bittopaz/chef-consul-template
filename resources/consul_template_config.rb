@@ -12,14 +12,14 @@ action :create do
     raise "Missing destination for #{i} entry at '#{new_resource.name}" if v[:destination].nil?
   end
 
-  template_path = ::File.join(node['devopsdance-consul-template']['config_dir'],
+  template_path = ::File.join(node['consul-template']['config_dir'],
                               new_resource.name)
 
   template template_path do
-    cookbook 'devopsdance-consul-template'
+    cookbook 'consul-template'
     source 'config.erb'
     user 'root'
-    group node['devopsdance-consul-template']['service_group']
+    group 'root'
     mode '0640'
     variables templates: templates
     notifies :restart, 'service[consul-template]', :delayed
@@ -29,7 +29,7 @@ action :create do
 end
 
 action :delete do
-  file_path = ::File.join(node['devopsdance-consul-template']['config_dir'],
+  file_path = ::File.join(node['consul-template']['config_dir'],
                           new_resource.name)
 
   file file_path do
